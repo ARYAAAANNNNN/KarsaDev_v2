@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Key, Eye, EyeOff, ArrowRight, Moon, Code, Check, ShieldCheck } from 'lucide-react';
+import { Mail, Key, Eye, EyeOff, ArrowRight, Moon, Code, Check } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signIn, switchTeacherRole } = useAuth();
+  const { signIn } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,19 +24,6 @@ export default function Login() {
 
     const role = result.profile?.role;
     navigate(role === 'teacher' ? '/teacher' : '/dashboard');
-  };
-
-  const handleTeacherPortalAccess = async () => {
-    const pin = window.prompt('Masukkan PIN akses Guru:\n\nGURU2026', 'GURU2026');
-    if (!pin) return;
-
-    const result = await switchTeacherRole(pin);
-    if (!result.success) {
-      setError(result.message || 'PIN tidak valid.');
-      return;
-    }
-
-    navigate('/teacher');
   };
 
   return (
@@ -153,15 +140,6 @@ export default function Login() {
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={handleTeacherPortalAccess}
-              className="w-full border border-cyan-200 bg-cyan-50 text-cyan-700 font-semibold rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors hover:bg-cyan-100"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              Masuk ke Mode Guru
-            </button>
 
             <div className="text-center pt-1">
               <span className="text-xs text-[var(--color-brand-text-medium)]">

@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { getCurrentUser, loginUser, logoutUser, registerUser } from '../lib/authApi';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { isTrustedAdminEmail, loginUser, logoutUser, registerUser } from '../lib/authApi';
 import { getProfileFromSupabase, isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext(null);
@@ -11,6 +11,7 @@ const defaultProfile = {
   role: 'student',
   class_name: 'X PPLG 1',
   xp: 0,
+  is_admin: false,
 };
 
 const STORAGE_KEY = 'karsadev_profile';
@@ -106,6 +107,7 @@ export function AuthProvider({ children }) {
       role: result.profile?.role || defaultProfile.role,
       class_name: result.profile?.class_name || defaultProfile.class_name,
       full_name: result.profile?.full_name || defaultProfile.full_name,
+      is_admin: !!(result.profile?.is_admin || isTrustedAdminEmail(result.profile?.email || email)),
     };
 
     setProfile(nextProfile);
@@ -127,24 +129,29 @@ export function AuthProvider({ children }) {
       full_name: result.profile?.full_name || full_name || defaultProfile.full_name,
       class_name: result.profile?.class_name || class_name || defaultProfile.class_name,
       role: result.profile?.role || 'student',
+      is_admin: !!(result.profile?.is_admin || false),
     };
 
     setProfile(nextProfile);
     return { success: true, profile: nextProfile };
   };
 
-  const switchTeacherRole = async (pin) => {
+  const switchTeacherRole = useCallback(async (pin) => {
     const normalized = String(pin || '').trim().toUpperCase();
 
     if (normalized !== 'GURU2026') {
       return { success: false, message: 'PIN tidak valid. Gunakan GURU2026.' };
     }
 
+    const currentEmail = String(profile?.email || '').trim().toLowerCase();
+    if (!isTrustedAdminEmail(currentEmail)) {
+      return { success: false, message: 'Akses admin hanya dapat dipakai oleh akun terdaftar.' };
+    }
+
     const updatedProfile = {
       ...profile,
       role: 'teacher',
-      full_name: 'Wanda Kurniawan',
-      class_name: 'Guru PPLG',
+      is_admin: true,
     };
 
     setProfile(updatedProfile);
@@ -155,8 +162,7 @@ export function AuthProvider({ children }) {
           .from('profiles')
           .update({
             role: 'teacher',
-            full_name: 'Wanda Kurniawan',
-            class_name: 'Guru PPLG',
+            is_admin: true,
           })
           .eq('id', profile.id);
       } catch (error) {
@@ -165,9 +171,9 @@ export function AuthProvider({ children }) {
     }
 
     return { success: true, role: 'teacher' };
-  };
+  }, [profile]);
 
-  const switchStudentRole = async () => {
+  const switchStudentRole = useCallback(async () => {
     const updatedProfile = {
       ...profile,
       role: 'student',
@@ -193,7 +199,7 @@ export function AuthProvider({ children }) {
     }
 
     return { success: true, role: 'student' };
-  };
+  }, [profile]);
 
   const signOut = async () => {
     const result = await logoutUser();
@@ -208,12 +214,13 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(
     () => ({ profile, setProfile, loading, signIn, signUp, switchTeacherRole, switchStudentRole, signOut }),
-    [profile, loading]
+    [profile, loading, switchTeacherRole, switchStudentRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
 

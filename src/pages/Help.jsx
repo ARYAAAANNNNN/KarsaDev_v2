@@ -71,8 +71,8 @@ export default function Help() {
               a: "Feedback, inline comments, dan catatan dari guru dapat dilihat pada halaman Riwayat Pengumpulan. Klik pada tugas yang berstatus 'Dinilai', KarsaDev akan menampilkan log review beserta skor akhir untuk setiap rubrik penilaian."
             },
             {
-              q: "Apa yang harus dilakukan jika saya lupa PIN Mode Guru?",
-              a: "PIN Mode Guru (Instructor Portal) hanya didistribusikan kepada tenaga pendidik yang terdaftar resmi. Jika Anda adalah guru pengampu dan kehilangan akses PIN, silakan hubungi Administrator IT Lab SMKN 1 Jakarta untuk melakukan reset autentikasi ganda."
+              q: "Bagaimana guru pengampu mengakses portal penilaian?",
+              a: "Portal Guru dan Penilaian LKPD diakses secara terpisah melalui portal login khusus (/admin atau /admin/login) yang terproteksi dan hanya dapat dibuka oleh akun pendidik terdaftar."
             }
           ].map((faq, i) => (
             <div key={i} className="group border border-[var(--color-brand-border)] rounded-xl overflow-hidden hover:border-[var(--color-brand-primary)]/50 transition-colors bg-[var(--color-brand-surface)]">

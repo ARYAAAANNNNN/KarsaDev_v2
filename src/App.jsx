@@ -17,6 +17,7 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import ManageTasksPage from './pages/teacher/ManageTasksPage';
 import GradingDeskPage from './pages/teacher/GradingDeskPage';
 import ClassRecapPage from './pages/teacher/ClassRecapPage';
+import AdminLogin from './pages/admin/AdminLogin';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
@@ -27,6 +28,10 @@ export default function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Halaman Login Admin / Guru */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<Navigate to="/teacher" replace />} />
 
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
@@ -43,6 +48,7 @@ export default function App() {
               <Route path="recap" element={<ClassRecapPage />} />
               <Route path="settings" element={<Settings />} />
             </Route>
+            <Route path="/admin/*" element={<Navigate to="/teacher" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

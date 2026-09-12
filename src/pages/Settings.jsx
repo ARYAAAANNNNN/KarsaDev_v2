@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { User, Settings as SettingsIcon, Bell, Key, Camera, Save, Shield, Eye, EyeOff, Activity, Clock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -6,22 +6,14 @@ import { useAuth } from '../context/AuthContext';
 export default function Settings() {
   const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get('tab') ) || 'profile';
+  const tabFromUrl = searchParams.get('tab');
+  const activeTab = (tabFromUrl === 'profile' || tabFromUrl === 'account' || tabFromUrl === 'activity') ? tabFromUrl : 'profile';
   
-  const [activeTab, setActiveTab] = useState(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  useEffect(() => {
-    const tab = searchParams.get('tab') ;
-    if (tab && (tab === 'profile' || tab === 'account')) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
-
   const handleTabChange = (tab) => {
-    setActiveTab(tab);
     setSearchParams({ tab });
   };
 

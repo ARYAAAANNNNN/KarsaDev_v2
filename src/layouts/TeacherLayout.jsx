@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -141,7 +141,7 @@ export default function TeacherLayout() {
             <button
               onClick={async () => {
                 await signOut();
-                navigate('/login');
+                navigate('/admin/login');
               }}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
             >
@@ -189,6 +189,30 @@ export default function TeacherLayout() {
                     {label}
                   </NavLink>
                 ))}
+                <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                  <button
+                    onClick={async () => {
+                      await switchStudentRole();
+                      setMobileOpen(false);
+                      navigate('/dashboard');
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-700 transition"
+                  >
+                    <UserRound className="h-3.5 w-3.5" />
+                    Kembali ke Mode Siswa
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      setMobileOpen(false);
+                      navigate('/admin/login');
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Keluar Guru
+                  </button>
+                </div>
               </nav>
             </div>
           )}

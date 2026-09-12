@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Outlet, Link, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, useSearchParams } from 'react-router-dom';
 import {
-  Search, Bell, BookOpen, History as HistoryIcon, HelpCircle, Code, Lock, Menu, X,
+  Search, Bell, BookOpen, History as HistoryIcon, HelpCircle, Code, Menu, X,
   AlertTriangle, CheckCircle2, User, Settings, LogOut, Sun, Moon
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
@@ -13,8 +13,7 @@ export default function DashboardLayout() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { profile, switchTeacherRole } = useAuth();
+  const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const displayName = profile?.full_name || 'Siswa PPLG';
@@ -64,7 +63,7 @@ export default function DashboardLayout() {
       const now = ctx.currentTime;
       playTone(523.25, now, 0.2); // C5
       playTone(659.25, now + 0.1, 0.4); // E5
-    } catch (e) {
+    } catch {
       console.log('Audio play blocked or not supported');
     }
   };
@@ -97,19 +96,6 @@ export default function DashboardLayout() {
     if (path === '/dashboard' && location.pathname === '/dashboard') return true;
     if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
     return false;
-  };
-
-  const handleTeacherPortalAccess = async () => {
-    const pin = window.prompt('Masukkan PIN akses Guru:\n\nGURU2026', 'GURU2026');
-    if (!pin) return;
-
-    const result = await switchTeacherRole(pin);
-    if (!result.success) {
-      window.alert(result.message || 'PIN tidak valid.');
-      return;
-    }
-
-    navigate('/teacher');
   };
 
   return (
@@ -233,22 +219,6 @@ export default function DashboardLayout() {
           </nav>
         </div>
 
-        <div className="mt-auto p-6">
-          <div className="mb-2">
-            <p className="text-[10px] font-bold text-[var(--color-brand-text-muted)] uppercase tracking-wider mb-2 px-3 flex justify-between items-center">
-              Mode Guru
-              <Lock className="w-3 h-3" />
-            </p>
-            <button
-              type="button"
-              onClick={handleTeacherPortalAccess}
-              className="w-full px-3 py-2.5 border border-[var(--color-brand-border)] rounded-md bg-[var(--color-brand-canvas)] text-left text-xs font-semibold text-[var(--color-brand-text-medium)] hover:bg-[var(--color-brand-border)] transition-colors"
-            >
-              <span className="block text-[10px] uppercase tracking-wide text-[var(--color-brand-text-muted)]">PIN akses</span>
-              <span className="mt-1 block font-mono text-[var(--color-brand-primary)]">GURU2026</span>
-            </button>
-          </div>
-        </div>
       </aside>
 
       {/* Main Content */}

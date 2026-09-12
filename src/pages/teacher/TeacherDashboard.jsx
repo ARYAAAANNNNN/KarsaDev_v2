@@ -27,16 +27,11 @@ const allRecent = [
 export default function TeacherDashboard() {
   const [selectedClass, setSelectedClass] = useState('XII PPLG 1');
   const [stats, setStats] = useState(defaultStats);
-  const [recent, setRecent] = useState(() => allRecent.filter((item) => item.className === selectedClass));
 
-  const filteredRecent = useMemo(
+  const recent = useMemo(
     () => allRecent.filter((item) => item.className === selectedClass),
     [selectedClass]
   );
-
-  useEffect(() => {
-    setRecent(filteredRecent);
-  }, [filteredRecent]);
 
   useEffect(() => {
     const load = async () => {
@@ -54,7 +49,7 @@ export default function TeacherDashboard() {
 
         setStats({
           modules: modules.length || defaultStats.modules,
-          pending: totalPending || Math.max(filteredRecent.length, defaultStats.pending),
+          pending: totalPending || Math.max(recent.length, defaultStats.pending),
           submissionRate: classSubmissions.length ? Math.min(100, Math.round((classSubmissions.filter((item) => item.status !== 'Pending' && item.status !== 'Perlu Revisi').length / classSubmissions.length) * 100)) : 86,
           classAverage: Number(average),
         });
@@ -77,7 +72,7 @@ export default function TeacherDashboard() {
       unsubscribeModules();
       unsubscribeSubmissions();
     };
-  }, [selectedClass, filteredRecent.length]);
+  }, [selectedClass, recent.length]);
 
   return (
     <div className="space-y-6">

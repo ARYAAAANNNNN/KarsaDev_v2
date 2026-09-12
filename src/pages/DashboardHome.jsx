@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -21,7 +21,6 @@ import {
   FileText,
   Eye,
   MessageSquareText,
-  Lock,
   PieChart as PieChartIcon,
   Tag
 } from 'lucide-react';
@@ -39,8 +38,7 @@ export default function DashboardHome() {
   const [reminderModal, setReminderModal] = useState({ isOpen: false, taskTitle: '' });
   const [reminderTime, setReminderTime] = useState('5');
   const [reminderToast, setReminderToast] = useState({ show: false, message: '' });
-  const navigate = useNavigate();
-  const { profile, switchTeacherRole } = useAuth();
+  const { profile } = useAuth();
 
   const SortableCard = ({ id, children }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -170,19 +168,6 @@ export default function DashboardHome() {
     setSubmissionLink('');
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
-  };
-
-  const handleTeacherPortalAccess = async () => {
-    const pin = window.prompt('Masukkan PIN akses Guru:\n\nGURU2026', 'GURU2026');
-    if (!pin) return;
-
-    const result = await switchTeacherRole(pin);
-    if (!result.success) {
-      window.alert(result.message || 'PIN tidak valid.');
-      return;
-    }
-
-    navigate('/teacher');
   };
 
   const teacherList = [
@@ -676,30 +661,6 @@ export default function DashboardHome() {
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="col-span-1 bg-[var(--color-brand-text-high)] rounded-[16px] p-6 border border-slate-800 shadow-lg text-white relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Lock className="w-24 h-24" />
-          </div>
-          <div>
-            <span className="bg-[var(--color-brand-primary)] text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider mb-4 inline-block">
-              Instructor Portal
-            </span>
-            <h3 className="text-xl font-bold mb-2 text-white">Beralih ke Mode Guru</h3>
-            <p className="text-sm text-[var(--color-brand-text-muted)] mb-6 relative z-10">
-              Akses cepat untuk guru pengampu memeriksa progress LKPD, input nilai, dan rilis tugas sprint terbaru.
-            </p>
-            
-            <div className="bg-slate-800/50 rounded-lg p-3 flex justify-between items-center mb-6 relative z-10 border border-slate-700">
-              <span className="text-xs text-[var(--color-brand-text-muted)]">Kode Akses<br/>Instruktur</span>
-              <span className="font-mono text-[var(--color-brand-primary)] font-bold tracking-wider bg-slate-900 px-2 py-1 rounded">PIN GURU2026</span>
-            </div>
-          </div>
-          
-          <button onClick={handleTeacherPortalAccess} className="w-full py-2.5 bg-[var(--color-brand-secondary-bg)] hover:bg-teal-300 text-[var(--color-brand-secondary)] rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors relative z-10">
-             Buka Panel Guru <ArrowRight className="w-4 h-4" />
-          </button>
         </div>
 
       </div>
