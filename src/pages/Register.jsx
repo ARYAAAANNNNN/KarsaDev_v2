@@ -283,7 +283,7 @@ export default function Register() {
         <div className="mt-8 text-center text-[11px] font-medium text-[var(--color-brand-text-muted)] flex flex-wrap justify-center items-center gap-2">
           <span>&copy; 2024 KarsaDev Platform</span>
           <span className="w-1 h-1 rounded-full bg-[var(--color-brand-border-hover)] hidden sm:block"></span>
-          <span>SMKN 1 Jakarta PPLG. Hak cipta dilindungi.</span>
+          <span>SMKN 1 Ciomas PPLG. Hak cipta dilindungi.</span>
           <div className="flex-grow w-full sm:hidden"></div>
           <span className="w-1 h-1 rounded-full bg-[var(--color-brand-border-hover)] hidden sm:block"></span>
           <a href="#" className="hover:text-[var(--color-brand-text-medium)]">Panduan Siswa</a>
