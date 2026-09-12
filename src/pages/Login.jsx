@@ -161,7 +161,7 @@ export default function Login() {
         </div>
 
         <div className="mt-6 text-center text-[11px] font-medium text-[var(--color-brand-text-muted)] flex items-center justify-center gap-2">
-          <span>SMK Negeri 1 Jakarta</span>
+          <span>SMK Negeri 1 Ciomas</span>
           <span className="w-1 h-1 rounded-full bg-[var(--color-brand-border-hover)]"></span>
           <a href="#" className="hover:text-[var(--color-brand-text-medium)]">Bantuan</a>
           <span className="w-1 h-1 rounded-full bg-[var(--color-brand-border-hover)]"></span>
