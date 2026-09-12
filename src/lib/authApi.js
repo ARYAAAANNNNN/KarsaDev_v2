@@ -81,6 +81,8 @@ export const loginUser = async ({ email, password }) => {
     return { success: false, message: 'Email dan password wajib diisi.' };
   }
 
+  const isLocalDevelopment = typeof window !== 'undefined' && /localhost|127\.0\.0\.1/.test(window.location.hostname);
+
   const adminAccount = verifyAdminCredentials(email, password);
   if (adminAccount) {
     return {
@@ -110,6 +112,13 @@ export const loginUser = async ({ email, password }) => {
   );
 
   if (!isSupabaseConfigured || !supabase) {
+    if (!isLocalDevelopment) {
+      return {
+        success: false,
+        message: 'Sistem autentikasi belum siap. Silakan hubungi admin untuk mengaktifkan Supabase.',
+      };
+    }
+
     if (foundUser) {
       if (foundUser.password && foundUser.password !== password) {
         return { success: false, message: 'Kata sandi tidak sesuai.' };
@@ -264,6 +273,8 @@ export const registerUser = async ({ email, password, full_name, class_name, nis
     return { success: false, message: 'Email dan password wajib diisi.' };
   }
 
+  const isLocalDevelopment = typeof window !== 'undefined' && /localhost|127\.0\.0\.1/.test(window.location.hostname);
+
   const localUserObj = {
     id: `user-${Date.now()}`,
     email,
@@ -280,6 +291,13 @@ export const registerUser = async ({ email, password, full_name, class_name, nis
   saveLocalUser(localUserObj);
 
   if (!isSupabaseConfigured || !supabase) {
+    if (!isLocalDevelopment) {
+      return {
+        success: false,
+        message: 'Pendaftaran belum bisa dilakukan karena Supabase belum aktif di deploy ini.',
+      };
+    }
+
     return {
       success: true,
       demo: true,
