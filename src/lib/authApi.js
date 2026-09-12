@@ -47,6 +47,35 @@ export const verifyAdminCredentials = (email, password) => {
   );
 };
 
+const USERS_STORAGE_KEY = 'karsadev_registered_users';
+
+export const getLocalUsers = () => {
+  try {
+    const raw = localStorage.getItem(USERS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveLocalUser = (userData) => {
+  const users = getLocalUsers();
+  const normalizedEmail = String(userData.email || '').trim().toLowerCase();
+  const existingIndex = users.findIndex(
+    (u) => String(u.email || '').trim().toLowerCase() === normalizedEmail
+  );
+  if (existingIndex >= 0) {
+    users[existingIndex] = { ...users[existingIndex], ...userData };
+  } else {
+    users.push(userData);
+  }
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  } catch (err) {
+    console.warn('Gagal menyimpan user lokal:', err);
+  }
+};
+
 export const loginUser = async ({ email, password }) => {
   if (!email || !password) {
     return { success: false, message: 'Email dan password wajib diisi.' };
@@ -67,12 +96,46 @@ export const loginUser = async ({ email, password }) => {
         email: adminAccount.email,
         role: 'teacher',
         class_name: adminAccount.class_name,
+        avatar_url: null,
         is_admin: true,
       },
     };
   }
 
+  // Cek apakah ada di akun registrasi lokal
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const localUsers = getLocalUsers();
+  const foundUser = localUsers.find(
+    (u) => String(u.email || '').trim().toLowerCase() === normalizedEmail
+  );
+
   if (!isSupabaseConfigured || !supabase) {
+    if (foundUser) {
+      if (foundUser.password && foundUser.password !== password) {
+        return { success: false, message: 'Kata sandi tidak sesuai.' };
+      }
+      return {
+        success: true,
+        demo: true,
+        user: {
+          id: foundUser.id || `local-${foundUser.email}`,
+          email: foundUser.email,
+        },
+        profile: {
+          id: foundUser.id || `local-${foundUser.email}`,
+          full_name: foundUser.full_name,
+          email: foundUser.email,
+          role: foundUser.role || 'student',
+          class_name: foundUser.class_name || 'X PPLG 1',
+          nisn: foundUser.nisn || '',
+          avatar_url: foundUser.avatar_url || null,
+          is_admin: false,
+        },
+      };
+    }
+
+    // Jika belum terdaftar sebelumnya, ekstrak nama dari email
+    const autoName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     return {
       success: true,
       demo: true,
@@ -82,10 +145,11 @@ export const loginUser = async ({ email, password }) => {
       },
       profile: {
         id: 'local-user',
-        full_name: 'Siswa PPLG',
+        full_name: autoName || 'Siswa PPLG',
         email,
         role: 'student',
         class_name: 'X PPLG 1',
+        avatar_url: null,
         is_admin: false,
       },
     };
@@ -97,6 +161,83 @@ export const loginUser = async ({ email, password }) => {
   });
 
   if (error) {
+    const errorMsg = error.message || '';
+
+    // Tangani jika Supabase menolak karena "Email not confirmed"
+    if (errorMsg.toLowerCase().includes('email not confirmed')) {
+      if (foundUser) {
+        if (foundUser.password && foundUser.password !== password) {
+          return { success: false, message: 'Kata sandi tidak sesuai.' };
+        }
+        return {
+          success: true,
+          user: {
+            id: foundUser.id || `local-${foundUser.email}`,
+            email: foundUser.email,
+          },
+          profile: {
+            id: foundUser.id || `local-${foundUser.email}`,
+            full_name: foundUser.full_name,
+            email: foundUser.email,
+            role: foundUser.role || 'student',
+            class_name: foundUser.class_name || 'X PPLG 1',
+            nisn: foundUser.nisn || '',
+            avatar_url: foundUser.avatar_url || null,
+            is_admin: false,
+          },
+        };
+      }
+
+      // Coba query langsung tabel profiles supabase jika ada
+      try {
+        const { data: profData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (profData) {
+          return {
+            success: true,
+            user: {
+              id: profData.id,
+              email: profData.email,
+            },
+            profile: {
+              ...profData,
+              is_admin: false,
+            },
+          };
+        }
+      } catch (e) {
+        console.warn('Fallback profile query failed:', e);
+      }
+
+      // Fallback jika baru mendaftar
+      const autoName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const fallbackProfile = {
+        id: `user-${email}`,
+        full_name: autoName || 'Siswa PPLG',
+        email,
+        role: 'student',
+        class_name: 'X PPLG 1',
+        nisn: '',
+        avatar_url: null,
+        is_admin: false,
+      };
+      saveLocalUser({ ...fallbackProfile, password });
+
+      return {
+        success: true,
+        user: { id: `user-${email}`, email },
+        profile: fallbackProfile,
+      };
+    }
+
+    if (errorMsg.includes('Invalid login credentials')) {
+      return { success: false, message: 'Email atau kata sandi tidak cocok.' };
+    }
+
     return { success: false, message: error.message };
   }
 
@@ -108,31 +249,46 @@ export const loginUser = async ({ email, password }) => {
     profile: {
       id: data?.user?.id || 'local-user',
       email: data?.user?.email || email,
+      full_name: remoteProfile?.full_name || foundUser?.full_name || data?.user?.user_metadata?.full_name || 'Siswa PPLG',
+      class_name: remoteProfile?.class_name || foundUser?.class_name || data?.user?.user_metadata?.class_name || 'X PPLG 1',
+      avatar_url: remoteProfile?.avatar_url || foundUser?.avatar_url || null,
+      role: remoteProfile?.role || 'student',
       ...(remoteProfile || {}),
       is_admin: !!remoteProfile?.is_admin || isTrustedAdminEmail(data?.user?.email || email),
     },
   };
 };
 
-export const registerUser = async ({ email, password, full_name, class_name }) => {
+export const registerUser = async ({ email, password, full_name, class_name, nisn = '' }) => {
   if (!email || !password) {
     return { success: false, message: 'Email dan password wajib diisi.' };
   }
+
+  const localUserObj = {
+    id: `user-${Date.now()}`,
+    email,
+    password,
+    full_name: full_name || 'Siswa PPLG',
+    class_name: class_name || 'X PPLG 1',
+    nisn: nisn || '',
+    role: 'student',
+    avatar_url: null,
+    created_at: new Date().toISOString(),
+  };
+
+  // Simpan selalu ke storage lokal agar konsisten di kedua mode
+  saveLocalUser(localUserObj);
 
   if (!isSupabaseConfigured || !supabase) {
     return {
       success: true,
       demo: true,
       user: {
-        id: 'local-user',
+        id: localUserObj.id,
         email,
       },
       profile: {
-        id: 'local-user',
-        full_name: full_name || 'Siswa PPLG',
-        email,
-        role: 'student',
-        class_name: class_name || 'X PPLG 1',
+        ...localUserObj,
         is_admin: false,
       },
     };
@@ -143,8 +299,9 @@ export const registerUser = async ({ email, password, full_name, class_name }) =
     password,
     options: {
       data: {
-        full_name: full_name || 'Siswa PPLG',
-        class_name: class_name || 'X PPLG 1',
+        full_name: localUserObj.full_name,
+        class_name: localUserObj.class_name,
+        nisn: localUserObj.nisn,
       },
     },
   });
@@ -153,18 +310,60 @@ export const registerUser = async ({ email, password, full_name, class_name }) =
     return { success: false, message: error.message };
   }
 
+  if (data?.user) {
+    try {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email,
+        full_name: localUserObj.full_name,
+        class_name: localUserObj.class_name,
+        nisn: localUserObj.nisn,
+        role: 'student',
+        avatar_url: null,
+        is_admin: false,
+      });
+    } catch (e) {
+      console.warn('Upsert profile di Supabase gagal:', e);
+    }
+  }
+
   return {
     success: true,
     user: data?.user || null,
     profile: {
-      id: data?.user?.id || 'local-user',
+      id: data?.user?.id || localUserObj.id,
       email: data?.user?.email || email,
-      full_name: full_name || 'Siswa PPLG',
-      class_name: class_name || 'X PPLG 1',
+      full_name: localUserObj.full_name,
+      class_name: localUserObj.class_name,
+      nisn: localUserObj.nisn,
       role: 'student',
+      avatar_url: null,
       is_admin: false,
     },
   };
+};
+
+export const updateUserProfile = async (profileData) => {
+  if (profileData?.email) {
+    saveLocalUser(profileData);
+  }
+
+  if (isSupabaseConfigured && supabase && profileData?.id && !profileData.id.startsWith('local-')) {
+    try {
+      await supabase.from('profiles').upsert({
+        id: profileData.id,
+        full_name: profileData.full_name,
+        class_name: profileData.class_name,
+        avatar_url: profileData.avatar_url,
+        nisn: profileData.nisn,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('Update remote profile gagal:', e);
+    }
+  }
+
+  return { success: true };
 };
 
 export const logoutUser = async () => {

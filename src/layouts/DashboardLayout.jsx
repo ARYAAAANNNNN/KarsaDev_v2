@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../context/AuthContext';
+import UserAvatar from '../components/common/UserAvatar';
 
 export default function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -131,7 +132,7 @@ export default function DashboardLayout() {
             onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
             className="focus:outline-none ring-2 ring-transparent focus:ring-[var(--color-brand-primary)]/30 rounded-full transition-all"
           >
-            <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-8 h-8 rounded-full border border-slate-200 shadow-sm" />
+            <UserAvatar name={displayName} avatarUrl={profile?.avatar_url} size="sm" />
           </button>
 
           {/* Mobile Popovers */}
@@ -164,7 +165,7 @@ export default function DashboardLayout() {
           {isProfileOpen && (
             <div className="absolute right-0 top-[120%] mt-2 w-64 bg-[var(--color-brand-surface)] rounded-xl shadow-[0_8px_30px_rgb(12,30,48,0.12)] border border-[var(--color-brand-border)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
               <div className="p-4 border-b border-[var(--color-brand-border)] bg-[var(--color-brand-canvas)] flex items-center gap-3">
-                <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm" />
+                <UserAvatar name={displayName} avatarUrl={profile?.avatar_url} size="md" />
                 <div>
                   <p className="text-sm font-bold text-[var(--color-brand-text-high)]">{displayName}</p>
                   <p className="text-[11px] text-[var(--color-brand-text-medium)] mt-0.5">{displayClass}</p>
@@ -295,13 +296,13 @@ export default function DashboardLayout() {
                 onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
                 className="focus:outline-none ring-2 ring-transparent focus:ring-[var(--color-brand-primary)]/30 rounded-full transition-all"
               >
-                <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-sm" />
+                <UserAvatar name={displayName} avatarUrl={profile?.avatar_url} size="md" />
               </button>
 
               {isProfileOpen && (
                 <div className="absolute right-0 top-[120%] mt-1 w-64 bg-[var(--color-brand-surface)] rounded-xl shadow-[0_8px_30px_rgb(12,30,48,0.12)] border border-[var(--color-brand-border)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                   <div className="p-4 border-b border-[var(--color-brand-border)] bg-[var(--color-brand-canvas)] flex items-center gap-3">
-                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-12 h-12 rounded-full object-cover border border-slate-200 shadow-sm" />
+                    <UserAvatar name={displayName} avatarUrl={profile?.avatar_url} size="lg" />
                     <div>
                       <p className="text-sm font-bold text-[var(--color-brand-text-high)]">{displayName}</p>
                       <p className="text-[11px] text-[var(--color-brand-text-medium)] mt-0.5">{profile?.email || 'siswa@smk.sch.id'}</p>

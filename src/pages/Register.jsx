@@ -1,12 +1,26 @@
 import { useState } from 'react';
-import { Mail, Key, Eye, EyeOff, ArrowRight, Moon, User, RotateCcw, Code } from 'lucide-react';
+import { Mail, Key, Eye, EyeOff, ArrowRight, Moon, User, RotateCcw, Code, GraduationCap, Hash } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const CLASS_OPTIONS = [
+  'X PPLG 1',
+  'X PPLG 2',
+  'X PPLG 3',
+  'XI PPLG 1',
+  'XI PPLG 2',
+  'XI PPLG 3',
+  'XII PPLG 1',
+  'XII PPLG 2',
+  'XII PPLG 3',
+];
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [className, setClassName] = useState('X PPLG 1');
+  const [nisn, setNisn] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,8 +52,9 @@ export default function Register() {
     const result = await signUp({
       email,
       password,
-      full_name: fullName,
-      class_name: 'XII PPLG 1',
+      full_name: fullName.trim(),
+      class_name: className,
+      nisn: nisn.trim(),
     });
     setLoading(false);
 
@@ -48,7 +63,8 @@ export default function Register() {
       return;
     }
 
-    navigate('/login');
+    // Auto login ke dashboard setelah registrasi berhasil
+    navigate('/dashboard');
   };
 
   return (
@@ -104,6 +120,51 @@ export default function Register() {
                   placeholder="Nama lengkap kamu"
                   required
                 />
+              </div>
+            </div>
+
+            {/* Kelas & NISN */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label htmlFor="class" className="block text-sm font-semibold text-[var(--color-brand-text-high)]">
+                  Kelas PPLG
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <GraduationCap className="w-4 h-4 text-[var(--color-brand-text-muted)]" />
+                  </div>
+                  <select
+                    id="class"
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                    className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 pl-10 pr-3 text-sm text-[var(--color-brand-text-high)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 focus:border-[var(--color-brand-primary)] transition-all cursor-pointer font-medium"
+                  >
+                    {CLASS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="nisn" className="block text-sm font-semibold text-[var(--color-brand-text-high)]">
+                  NIS / NISN <span className="text-xs font-normal text-[var(--color-brand-text-muted)]">(opsional)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Hash className="w-4 h-4 text-[var(--color-brand-text-muted)]" />
+                  </div>
+                  <input
+                    type="text"
+                    id="nisn"
+                    value={nisn}
+                    onChange={(e) => setNisn(e.target.value)}
+                    className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 pl-10 pr-4 text-sm text-[var(--color-brand-text-high)] placeholder-[var(--color-brand-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 focus:border-[var(--color-brand-primary)] transition-all"
+                    placeholder="Contoh: 20241029"
+                  />
+                </div>
               </div>
             </div>
 

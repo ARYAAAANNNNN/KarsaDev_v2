@@ -1,10 +1,175 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { User, Settings as SettingsIcon, Bell, Key, Camera, Save, Shield, Eye, EyeOff, Activity, Clock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UserAvatar from '../components/common/UserAvatar';
+
+function ProfileFormSection({ profile, updateProfile, onNotify }) {
+  const [fullName, setFullName] = useState(profile?.full_name || '');
+  const [className, setClassName] = useState(profile?.class_name || 'X PPLG 1');
+  const [nisn, setNisn] = useState(profile?.nisn || '');
+  const [bio, setBio] = useState('Fokus mendalami ekosistem JavaScript dan Framework Modern.');
+  const fileInputRef = useRef(null);
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    await updateProfile({
+      full_name: fullName.trim() || profile?.full_name,
+      class_name: className,
+      nisn: nisn.trim(),
+    });
+    onNotify('Profil berhasil diperbarui!');
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Ukuran file foto maksimal 2MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl === 'string') {
+        await updateProfile({ avatar_url: dataUrl });
+        onNotify('Foto profil berhasil diunggah!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = async () => {
+    await updateProfile({ avatar_url: null });
+    onNotify('Foto profil dihapus. Kembali ke avatar inisial.');
+  };
+
+  return (
+    <div className="animate-in fade-in duration-300">
+      <h3 className="text-lg font-bold text-[var(--color-brand-text-high)] mb-6">Informasi Pribadi</h3>
+      
+      <form onSubmit={handleSaveProfile} className="space-y-6 max-w-2xl">
+        {/* Avatar Section */}
+        <div className="flex items-center gap-6 pb-6 border-b border-[var(--color-brand-border)]">
+          <div className="relative">
+            <UserAvatar name={fullName || profile?.full_name || 'User'} avatarUrl={profile?.avatar_url} size="xl" />
+            <button 
+              type="button" 
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 p-1.5 bg-[var(--color-brand-surface)] border border-[var(--color-brand-border)] rounded-full text-[var(--color-brand-primary)] shadow-sm hover:bg-[var(--color-brand-canvas)] transition-colors cursor-pointer"
+              title="Ubah Foto Profil"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handlePhotoUpload}
+              accept="image/*"
+              className="hidden"
+            />
+          </div>
+          <div>
+            <h4 className="font-semibold text-[var(--color-brand-text-high)] text-sm mb-1">Foto Profil</h4>
+            <p className="text-xs text-[var(--color-brand-text-medium)] mb-3">
+              {profile?.avatar_url 
+                ? 'Foto kustom aktif. Format JPG, PNG, GIF (Maks. 2MB).' 
+                : 'Belum ada foto (menampilkan inisial nama). Klik Unggah Foto untuk menambahkan.'}
+            </p>
+            <div className="flex gap-2">
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1.5 bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-md text-xs font-semibold text-[var(--color-brand-text-high)] hover:bg-[var(--color-brand-border)] transition-colors cursor-pointer"
+              >
+                {profile?.avatar_url ? 'Ganti Foto' : 'Unggah Foto'}
+              </button>
+              {profile?.avatar_url && (
+                <button 
+                  type="button" 
+                  onClick={handleRemovePhoto}
+                  className="px-3 py-1.5 text-red-600 rounded-md text-xs font-semibold hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                >
+                  Hapus Foto
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Form Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Nama Lengkap</label>
+            <input 
+              type="text" 
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Nomor Induk Siswa (NIS/NISN)</label>
+            <input 
+              type="text" 
+              value={nisn}
+              onChange={(e) => setNisn(e.target.value)}
+              placeholder="Masukkan NIS/NISN siswa"
+              className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Email Sekolah</label>
+            <input 
+              type="email" 
+              value={profile?.email || 'siswa@smk.sch.id'} 
+              disabled 
+              className="w-full bg-[var(--color-brand-border)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm text-[var(--color-brand-text-muted)] cursor-not-allowed" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Kelas / Konsentrasi</label>
+            <select 
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 cursor-pointer font-medium"
+            >
+              <option>X PPLG 1</option>
+              <option>X PPLG 2</option>
+              <option>X PPLG 3</option>
+              <option>XI PPLG 1</option>
+              <option>XI PPLG 2</option>
+              <option>XI PPLG 3</option>
+              <option>XII PPLG 1</option>
+              <option>XII PPLG 2</option>
+              <option>XII PPLG 3</option>
+            </select>
+          </div>
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Bio / Moto Belajar</label>
+            <textarea 
+              rows={3} 
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 resize-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <div className="pt-4 flex justify-end">
+          <button type="submit" className="bg-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary-hover)] text-white font-semibold rounded-lg py-2 px-5 text-sm transition-colors flex items-center gap-2 shadow-sm cursor-pointer">
+            <Save className="w-4 h-4" /> Simpan Profil
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 export default function Settings() {
-  const { profile } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const activeTab = (tabFromUrl === 'profile' || tabFromUrl === 'account' || tabFromUrl === 'activity') ? tabFromUrl : 'profile';
@@ -12,15 +177,21 @@ export default function Settings() {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Perubahan berhasil disimpan!');
 
   const handleTabChange = (tab) => {
     setSearchParams({ tab });
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
+  const handleNotify = (message) => {
+    setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    handleNotify('Pengaturan berhasil disimpan!');
   };
 
   return (
@@ -29,7 +200,7 @@ export default function Settings() {
       {showToast && (
         <div className="fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
           <Save className="w-5 h-5 text-green-400" />
-          <span className="text-sm font-medium">Perubahan berhasil disimpan!</span>
+          <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       )}
 
@@ -69,73 +240,12 @@ export default function Settings() {
         {/* Content Area */}
         <div className="flex-1 p-4 md:p-8">
           {activeTab === 'profile' && (
-            <div className="animate-in fade-in duration-300">
-              <h3 className="text-lg font-bold text-[var(--color-brand-text-high)] mb-6">Informasi Pribadi</h3>
-              
-              <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
-                {/* Avatar Section */}
-                <div className="flex items-center gap-6 pb-6 border-b border-[var(--color-brand-border)]">
-                  <div className="relative">
-                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-slate-200" />
-                    <button type="button" className="absolute bottom-0 right-0 p-1.5 bg-[var(--color-brand-surface)] border border-[var(--color-brand-border)] rounded-full text-[var(--color-brand-primary)] shadow-sm hover:bg-[var(--color-brand-canvas)] transition-colors">
-                      <Camera className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[var(--color-brand-text-high)] text-sm mb-1">Foto Profil</h4>
-                    <p className="text-xs text-[var(--color-brand-text-medium)] mb-3">Format JPG, GIF atau PNG. Maksimal ukuran 2MB.</p>
-                    <div className="flex gap-2">
-                      <button type="button" className="px-3 py-1.5 bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-md text-xs font-semibold text-[var(--color-brand-text-high)] hover:bg-[var(--color-brand-canvas)] transition-colors">
-                        Ubah Foto
-                      </button>
-                      <button type="button" className="px-3 py-1.5 text-red-600 rounded-md text-xs font-semibold hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
-                        Hapus
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Nama Lengkap</label>
-                    <input type="text" defaultValue={profile?.full_name || 'Siswa PPLG'} className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Nomor Induk Siswa (NIS/NISN)</label>
-                    <input type="text" defaultValue={profile?.id || 'Belum diisi'} disabled className="w-full bg-[var(--color-brand-border)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm text-[var(--color-brand-text-muted)] cursor-not-allowed" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Email Sekolah</label>
-                    <input type="email" defaultValue={profile?.email || 'siswa@smk.sch.id'} className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Kelas / Konsentrasi</label>
-                    <select defaultValue={profile?.class_name || 'X PPLG 1'} className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20">
-                      <option>X PPLG 1</option>
-                      <option>X PPLG 2</option>
-                      <option>X PPLG 3</option>
-                      <option>XI PPLG 1</option>
-                      <option>XI PPLG 2</option>
-                      <option>XI PPLG 3</option>
-                      <option>XII PPLG 1</option>
-                      <option>XII PPLG 2</option>
-                      <option>XII PPLG 3</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Bio / Moto Belajar</label>
-                    <textarea rows={3} defaultValue="Fokus mendalami ekosistem JavaScript dan Framework Modern." className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 resize-none"></textarea>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <button type="submit" className="bg-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary-hover)] text-white font-semibold rounded-lg py-2 px-5 text-sm transition-colors flex items-center gap-2 shadow-sm">
-                    <Save className="w-4 h-4" /> Simpan Profil
-                  </button>
-                </div>
-              </form>
-            </div>
+            <ProfileFormSection
+              key={profile?.id || profile?.email || 'profile-form'}
+              profile={profile}
+              updateProfile={updateProfile}
+              onNotify={handleNotify}
+            />
           )}
 
           {activeTab === 'account' && (

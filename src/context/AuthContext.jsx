@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { isTrustedAdminEmail, loginUser, logoutUser, registerUser } from '../lib/authApi';
+import { isTrustedAdminEmail, loginUser, logoutUser, registerUser, updateUserProfile } from '../lib/authApi';
 import { getProfileFromSupabase, isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext(null);
@@ -10,6 +10,8 @@ const defaultProfile = {
   email: 'siswa@smk.sch.id',
   role: 'student',
   class_name: 'X PPLG 1',
+  avatar_url: null,
+  nisn: '',
   xp: 0,
   is_admin: false,
 };
@@ -114,8 +116,8 @@ export function AuthProvider({ children }) {
     return { success: true, profile: nextProfile };
   };
 
-  const signUp = async ({ email, password, full_name, class_name }) => {
-    const result = await registerUser({ email, password, full_name, class_name });
+  const signUp = async ({ email, password, full_name, class_name, nisn = '' }) => {
+    const result = await registerUser({ email, password, full_name, class_name, nisn });
 
     if (!result.success) {
       return result;
@@ -128,6 +130,8 @@ export function AuthProvider({ children }) {
       email: result.profile?.email || result.user?.email || email,
       full_name: result.profile?.full_name || full_name || defaultProfile.full_name,
       class_name: result.profile?.class_name || class_name || defaultProfile.class_name,
+      nisn: result.profile?.nisn || nisn || '',
+      avatar_url: result.profile?.avatar_url || null,
       role: result.profile?.role || 'student',
       is_admin: !!(result.profile?.is_admin || false),
     };
@@ -135,6 +139,16 @@ export function AuthProvider({ children }) {
     setProfile(nextProfile);
     return { success: true, profile: nextProfile };
   };
+
+  const updateProfile = useCallback(async (updates) => {
+    const next = {
+      ...profile,
+      ...updates,
+    };
+    setProfile(next);
+    await updateUserProfile(next);
+    return { success: true, profile: next };
+  }, [profile]);
 
   const switchTeacherRole = useCallback(async (pin) => {
     const normalized = String(pin || '').trim().toUpperCase();
@@ -213,8 +227,8 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ profile, setProfile, loading, signIn, signUp, switchTeacherRole, switchStudentRole, signOut }),
-    [profile, loading, switchTeacherRole, switchStudentRole]
+    () => ({ profile, setProfile, loading, signIn, signUp, updateProfile, switchTeacherRole, switchStudentRole, signOut }),
+    [profile, loading, updateProfile, switchTeacherRole, switchStudentRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

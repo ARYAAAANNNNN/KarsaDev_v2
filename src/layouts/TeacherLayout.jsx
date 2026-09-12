@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { PPLG_TEACHERS } from '../lib/pplgData';
+import UserAvatar from '../components/common/UserAvatar';
 
 const navItems = [
   { label: 'Dasbor Ringkasan', path: '/teacher', icon: LayoutDashboard },
@@ -23,23 +25,30 @@ const navItems = [
   { label: 'Pengaturan & Keluar', path: '/teacher/settings', icon: Settings },
 ];
 
-const teacherProfiles = [
-  { id: 'wanda', name: 'Wanda Kurniawan', subject: 'Kecerdasan Buatan & KIK', role: 'teacher' },
-  { id: 'didin', name: 'Didin Saharudin, M.Kom.', subject: 'Pemrograman Web Laravel, QA, Docs', role: 'teacher' },
-  { id: 'diah', name: 'Diah Pungki Octaviani, S.Pd.', subject: 'Analisis Sistem & Wali Kelas XII PPLG 2', role: 'teacher' },
-];
-
 export default function TeacherLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { profile, setProfile, signOut, switchStudentRole } = useAuth();
   const navigate = useNavigate();
 
-  const activeTeacher = teacherProfiles.find((item) => item.name === profile?.full_name) || teacherProfiles[0];
+  // Cocokkan guru aktif berdasarkan email atau nama profil yang sedang login
+  const activeTeacher = PPLG_TEACHERS.find(
+    (item) => item.email === profile?.email || item.name === profile?.full_name
+  ) || {
+    id: 'teacher-custom',
+    name: profile?.full_name || 'Guru PPLG',
+    nip: profile?.nip || '198503152010011012',
+    subject: profile?.class_name || 'Kecerdasan Buatan & Pemodelan PPLG',
+    role: profile?.role || 'teacher',
+    homeroom: 'Kelas PPLG',
+    status: 'ONLINE',
+  };
 
   const handleSwitchTeacher = (teacher) => {
     setProfile((prev) => ({
       ...prev,
+      email: teacher.email,
       full_name: teacher.name,
+      nip: teacher.nip,
       role: teacher.role,
       class_name: teacher.subject,
     }));
@@ -64,24 +73,23 @@ export default function TeacherLayout() {
 
           <div className="px-4 py-4 border-b border-slate-800">
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 p-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 font-bold text-slate-950">
-                    {activeTeacher.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{profile?.full_name}</p>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300">{profile?.role}</p>
+                  <UserAvatar name={activeTeacher.name} avatarUrl={profile?.avatar_url} size="md" />
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-semibold text-white truncate" title={activeTeacher.name}>{activeTeacher.name}</p>
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-cyan-300">NIP: {activeTeacher.nip}</p>
+                    <p className="text-[10px] text-slate-400 truncate mt-0.5" title={activeTeacher.subject}>{activeTeacher.subject}</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-emerald-500/20 px-2 py-1 text-[10px] font-bold text-emerald-300">
+                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold text-emerald-300 shrink-0">
                   ONLINE
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 p-4">
+          <div className="flex-1 p-4 overflow-y-auto hide-scrollbar">
             <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">Navigasi Akses</p>
             <nav className="space-y-2">
               {navItems.map(({ label, path, icon: Icon }) => (
@@ -103,24 +111,25 @@ export default function TeacherLayout() {
               ))}
             </nav>
 
-            <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900/60 p-3">
+            <div className="mt-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-3">
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                 <GraduationCap className="h-3.5 w-3.5" />
-                Pilihan Guru Aktif
+                Daftar Pengajar PPLG
               </div>
               <div className="space-y-2">
-                {teacherProfiles.map((teacher) => (
+                {PPLG_TEACHERS.map((teacher) => (
                   <button
                     key={teacher.id}
                     onClick={() => handleSwitchTeacher(teacher)}
-                    className={`w-full rounded-xl border p-2 text-left transition ${
+                    className={`w-full rounded-xl border p-2 text-left transition cursor-pointer ${
                       activeTeacher.id === teacher.id
-                        ? 'border-cyan-400 bg-cyan-500/10'
+                        ? 'border-cyan-400 bg-cyan-500/15 ring-1 ring-cyan-400/40'
                         : 'border-slate-700 bg-slate-800/40 hover:border-slate-500'
                     }`}
                   >
-                    <p className="text-sm font-semibold text-white">{teacher.name}</p>
-                    <p className="text-[10px] text-slate-300">{teacher.subject}</p>
+                    <p className="text-xs font-semibold text-white">{teacher.name}</p>
+                    <p className="text-[10px] text-cyan-300 font-mono">NIP: {teacher.nip}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{teacher.subject}</p>
                   </button>
                 ))}
               </div>
