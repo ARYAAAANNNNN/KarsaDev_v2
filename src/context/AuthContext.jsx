@@ -1,15 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { getCurrentUser, loginUser, logoutUser, registerUser } from '../lib/authApi';
 import { getProfileFromSupabase, isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext(null);
 
 const defaultProfile = {
   id: 'local-user',
-  full_name: 'Ahmad Fauzi',
-  email: 'ahmad.fauzi@smk.sch.id',
+  full_name: 'Siswa PPLG',
+  email: 'siswa@smk.sch.id',
   role: 'student',
-  class_name: 'XII PPLG 1',
-  xp: 1250,
+  class_name: 'X PPLG 1',
+  xp: 0,
 };
 
 const STORAGE_KEY = 'karsadev_profile';
@@ -91,28 +92,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password) => {
-    if (!isSupabaseConfigured || !supabase) {
-      const nextProfile = {
-        ...defaultProfile,
-        email,
-        role: email.includes('guru') || email.includes('teacher') ? 'teacher' : 'student',
-      };
-      setProfile(nextProfile);
-      return { success: true, profile: nextProfile };
+    const result = await loginUser({ email, password });
+
+    if (!result.success) {
+      return result;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      return { success: false, message: error.message };
-    }
-
-    const remoteProfile = await getProfileFromSupabase(data.user.id);
     const nextProfile = {
       ...defaultProfile,
-      ...(remoteProfile || {}),
-      id: data.user.id,
-      email: data.user.email,
+      ...(result.profile || {}),
+      id: result.profile?.id || result.user?.id || defaultProfile.id,
+      email: result.profile?.email || result.user?.email || email,
+      role: result.profile?.role || defaultProfile.role,
+      class_name: result.profile?.class_name || defaultProfile.class_name,
+      full_name: result.profile?.full_name || defaultProfile.full_name,
     };
 
     setProfile(nextProfile);
@@ -120,40 +113,20 @@ export function AuthProvider({ children }) {
   };
 
   const signUp = async ({ email, password, full_name, class_name }) => {
-    if (!isSupabaseConfigured || !supabase) {
-      const nextProfile = {
-        ...defaultProfile,
-        email,
-        full_name: full_name || defaultProfile.full_name,
-        class_name: class_name || defaultProfile.class_name,
-        role: 'student',
-      };
-      setProfile(nextProfile);
-      return { success: true, profile: nextProfile };
-    }
+    const result = await registerUser({ email, password, full_name, class_name });
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: full_name || 'Siswa PPLG',
-          class_name: class_name || 'XII PPLG 2',
-        },
-      },
-    });
-
-    if (error) {
-      return { success: false, message: error.message };
+    if (!result.success) {
+      return result;
     }
 
     const nextProfile = {
       ...defaultProfile,
-      id: data.user?.id || defaultProfile.id,
-      email: data.user?.email || email,
-      full_name: full_name || defaultProfile.full_name,
-      class_name: class_name || defaultProfile.class_name,
-      role: 'student',
+      ...(result.profile || {}),
+      id: result.profile?.id || result.user?.id || defaultProfile.id,
+      email: result.profile?.email || result.user?.email || email,
+      full_name: result.profile?.full_name || full_name || defaultProfile.full_name,
+      class_name: result.profile?.class_name || class_name || defaultProfile.class_name,
+      role: result.profile?.role || 'student',
     };
 
     setProfile(nextProfile);
@@ -223,11 +196,14 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    if (isSupabaseConfigured && supabase) {
-      await supabase.auth.signOut();
+    const result = await logoutUser();
+
+    if (!result.success) {
+      console.warn('Logout failed:', result.message);
     }
 
     setProfile(defaultProfile);
+    return result;
   };
 
   const value = useMemo(

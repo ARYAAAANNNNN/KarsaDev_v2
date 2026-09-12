@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { User, Settings as SettingsIcon, Bell, Key, Camera, Save, Shield, Eye, EyeOff, Activity, Clock } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Settings() {
+  const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') ) || 'profile';
   
@@ -105,22 +107,25 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Nama Lengkap</label>
-                    <input type="text" defaultValue="Ahmad Fauzi" className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" />
+                    <input type="text" defaultValue={profile?.full_name || 'Siswa PPLG'} className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Nomor Induk Siswa (NIS/NISN)</label>
-                    <input type="text" defaultValue="0051234567" disabled className="w-full bg-[var(--color-brand-border)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm text-[var(--color-brand-text-muted)] cursor-not-allowed" />
+                    <input type="text" defaultValue={profile?.id || 'Belum diisi'} disabled className="w-full bg-[var(--color-brand-border)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm text-[var(--color-brand-text-muted)] cursor-not-allowed" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Email Sekolah</label>
-                    <input type="email" defaultValue="ahmad.fauzi@smk.sch.id" className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" />
+                    <input type="email" defaultValue={profile?.email || 'siswa@smk.sch.id'} className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="block text-xs font-semibold text-[var(--color-brand-text-high)]">Kelas / Konsentrasi</label>
-                    <select className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20">
+                    <select defaultValue={profile?.class_name || 'X PPLG 1'} className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20">
                       <option>X PPLG 1</option>
                       <option>X PPLG 2</option>
+                      <option>X PPLG 3</option>
                       <option>XI PPLG 1</option>
+                      <option>XI PPLG 2</option>
+                      <option>XI PPLG 3</option>
                       <option>XII PPLG 1</option>
                       <option>XII PPLG 2</option>
                       <option>XII PPLG 3</option>

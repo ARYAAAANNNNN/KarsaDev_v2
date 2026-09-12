@@ -14,8 +14,11 @@ export default function DashboardLayout() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const { switchTeacherRole } = useAuth();
+  const { profile, switchTeacherRole } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const displayName = profile?.full_name || 'Siswa PPLG';
+  const displayClass = profile?.class_name || 'X PPLG 1';
 
   const [notifications, setNotifications] = useState([
     {
@@ -177,8 +180,8 @@ export default function DashboardLayout() {
               <div className="p-4 border-b border-[var(--color-brand-border)] bg-[var(--color-brand-canvas)] flex items-center gap-3">
                 <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm" />
                 <div>
-                  <p className="text-sm font-bold text-[var(--color-brand-text-high)]">Ahmad Fauzi</p>
-                  <p className="text-[11px] text-[var(--color-brand-text-medium)] mt-0.5">XII PPLG 1</p>
+                  <p className="text-sm font-bold text-[var(--color-brand-text-high)]">{displayName}</p>
+                  <p className="text-[11px] text-[var(--color-brand-text-medium)] mt-0.5">{displayClass}</p>
                 </div>
               </div>
               <div className="p-2 space-y-0.5">
@@ -315,8 +318,8 @@ export default function DashboardLayout() {
 
             <div className="flex items-center gap-3 border-l border-[var(--color-brand-border)] pl-4 relative">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-[var(--color-brand-text-high)]">Ahmad Fauzi</p>
-                <p className="text-xs text-[var(--color-brand-text-muted)]">XII PPLG 1</p>
+                <p className="text-sm font-semibold text-[var(--color-brand-text-high)]">{displayName}</p>
+                <p className="text-xs text-[var(--color-brand-text-muted)]">{displayClass}</p>
               </div>
               <button 
                 onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
@@ -330,9 +333,9 @@ export default function DashboardLayout() {
                   <div className="p-4 border-b border-[var(--color-brand-border)] bg-[var(--color-brand-canvas)] flex items-center gap-3">
                     <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Profile" className="w-12 h-12 rounded-full object-cover border border-slate-200 shadow-sm" />
                     <div>
-                      <p className="text-sm font-bold text-[var(--color-brand-text-high)]">Ahmad Fauzi</p>
-                      <p className="text-[11px] text-[var(--color-brand-text-medium)] mt-0.5">ahmad.fauzi@smk.sch.id</p>
-                      <p className="text-[10px] font-mono font-bold text-[var(--color-brand-primary)] mt-1 bg-blue-50 dark:bg-blue-500/10 inline-block px-1.5 py-0.5 rounded">NISN: 0051234567</p>
+                      <p className="text-sm font-bold text-[var(--color-brand-text-high)]">{displayName}</p>
+                      <p className="text-[11px] text-[var(--color-brand-text-medium)] mt-0.5">{profile?.email || 'siswa@smk.sch.id'}</p>
+                      <p className="text-[10px] font-mono font-bold text-[var(--color-brand-primary)] mt-1 bg-blue-50 dark:bg-blue-500/10 inline-block px-1.5 py-0.5 rounded">Kelas: {displayClass}</p>
                     </div>
                   </div>
                   <div className="p-2 space-y-0.5">

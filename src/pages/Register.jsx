@@ -1,14 +1,53 @@
 import { useState } from 'react';
 import { Mail, Key, Eye, EyeOff, ArrowRight, Moon, User, RotateCcw, Code } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!fullName.trim()) {
+      setError('Nama lengkap wajib diisi.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password minimal 6 karakter.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Konfirmasi password tidak cocok.');
+      return;
+    }
+
+    setLoading(true);
+    const result = await signUp({
+      email,
+      password,
+      full_name: fullName,
+      class_name: 'XII PPLG 1',
+    });
+    setLoading(false);
+
+    if (!result?.success) {
+      setError(result?.message || 'Registrasi gagal. Silakan coba lagi.');
+      return;
+    }
+
     navigate('/login');
   };
 
@@ -59,6 +98,8 @@ export default function Register() {
                 <input
                   type="text"
                   id="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 pl-10 pr-4 text-sm text-[var(--color-brand-text-high)] placeholder-[var(--color-brand-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 focus:border-[var(--color-brand-primary)] transition-all"
                   placeholder="Nama lengkap kamu"
                   required
@@ -78,6 +119,8 @@ export default function Register() {
                 <input
                   type="email"
                   id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 pl-10 pr-4 text-sm text-[var(--color-brand-text-high)] placeholder-[var(--color-brand-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 focus:border-[var(--color-brand-primary)] transition-all"
                   placeholder="nama@gmail.com"
                   required
@@ -97,8 +140,10 @@ export default function Register() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 pl-10 pr-10 text-sm text-[var(--color-brand-text-high)] placeholder-[var(--color-brand-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 focus:border-[var(--color-brand-primary)] transition-all"
-                  placeholder="Minimal 8 karakter"
+                  placeholder="Minimal 6 karakter"
                   required
                 />
                 <button
@@ -127,6 +172,8 @@ export default function Register() {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   id="confirm-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-lg py-2 pl-10 pr-10 text-sm text-[var(--color-brand-text-high)] placeholder-[var(--color-brand-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 focus:border-[var(--color-brand-primary)] transition-all"
                   placeholder="Ulangi kata sandi"
                   required
@@ -145,13 +192,20 @@ export default function Register() {
               </div>
             </div>
 
+            {error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary-hover)] text-white font-semibold rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-brand-primary)]"
+                disabled={loading}
+                className="w-full bg-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary-hover)] text-white font-semibold rounded-lg py-2.5 flex items-center justify-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-brand-primary)] disabled:opacity-60"
               >
-                Daftar Akun
+                {loading ? 'Mendaftar...' : 'Daftar Akun'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

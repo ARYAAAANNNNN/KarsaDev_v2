@@ -103,6 +103,9 @@ export default function DashboardHome() {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q')?.toLowerCase() || '';
 
+  const displayName = profile?.full_name || 'Siswa PPLG';
+  const displayClass = profile?.class_name || 'X PPLG 1';
+
   const [taskOrder, setTaskOrder] = useState(['card1', 'card2', 'card3']);
 
   const sensors = useSensors(
@@ -150,8 +153,8 @@ export default function DashboardHome() {
     }
 
     const result = await submitStudentTask({
-      student_name: profile?.full_name || 'Ahmad Fauzi',
-      class_name: profile?.class_name || 'XII PPLG 1',
+      student_name: profile?.full_name || 'Siswa PPLG',
+      class_name: profile?.class_name || 'X PPLG 1',
       module_title: submissionModal.taskTitle || 'Tugas',
       submission_url: submissionLink,
       notes: `${submissionModal.submissionType} - ${submissionLink}`,
@@ -244,10 +247,10 @@ export default function DashboardHome() {
             <span className="text-xs font-mono text-[var(--color-brand-text-muted)]">SMK PPLG • KELAS XII</span>
           </div>
           <h2 className="text-3xl font-bold text-[var(--color-brand-text-high)] mb-2">
-            Selamat Datang,<br />Ahmad Fauzi <span className="text-2xl">👋</span>
+            Selamat Datang,<br />{displayName} <span className="text-2xl">👋</span>
           </h2>
           <p className="text-[var(--color-brand-text-medium)] text-sm mb-6 max-w-md leading-relaxed">
-            Semester Genap 2025/2026 • Konsentrasi Keahlian Rekayasa Perangkat Lunak & GIM
+            {displayClass} • Semester Genap 2025/2026 • Konsentrasi Keahlian Rekayasa Perangkat Lunak & GIM
           </p>
           <div className="inline-flex items-center gap-2 bg-[var(--color-brand-canvas)] border border-[var(--color-brand-border)] rounded-md py-2 px-3">
             <FileBox className="w-4 h-4 text-[var(--color-brand-primary)]" />
